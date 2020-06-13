@@ -1,20 +1,42 @@
 import json, falcon
 
 class ObjRequestClass:
+    __json_content = {}
+
+
+    def __validate_json_input(self, req):
+        try:
+            self.__json_content = json.loads(req.stream.read())
+            print 'json from client validate'
+            return True
+
+        except ValueError, e:
+            self.__json_content = {}
+            print 'json from client not validate'
+            return False
+
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_200
-        data = json.loads(req.stream.read())
+        
 
         # content = {
         #    'name' : 'kevin',
         #    'kelas' : '2',
         #    'asal' : 'semarang'
         # }
-
-
+        validated = self.__validate_json_input(req)
+        
         output = {
-            'msg' : 'Hello {0}'.format(data['method'])
+            'status' : 200,
+            'msg' : None
         }
+
+        if(validated == True):
+
+            output['msg'] = 'Hello {name}'.format(name=self.__json_content['name'])  
+        else:
+            output['status'] = 404
+            output['msg'] = 'json input is not validated'
 
         resp.body = json.dumps(output)
 
